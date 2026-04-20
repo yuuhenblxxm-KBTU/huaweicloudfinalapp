@@ -3,8 +3,11 @@
 
   <div class="input-row">
     <input [(ngModel)]="inputUrl" placeholder="Paste a long URL here..." />
-    <button (click)="shorten()">Shorten</button>
+    <input [(ngModel)]="customCode" placeholder="Custom alias (optional)" />
+    <button (click)="shorten()" [disabled]="loading">{{ loading ? 'Creating...' : 'Shorten' }}</button>
   </div>
+
+  <p class="error" *ngIf="errorMessage">{{ errorMessage }}</p>
 
   <div class="result" *ngIf="shortenedUrl">
     <span>{{ shortenedUrl }}</span>
@@ -12,17 +15,27 @@
   </div>
 
   <h2>Recent Links</h2>
+  <p *ngIf="loadingLinks">Loading links...</p>
   <table *ngIf="links.length > 0">
     <thead>
       <tr><th>Short Code</th><th>Original URL</th><th>Created</th></tr>
     </thead>
     <tbody>
       <tr *ngFor="let link of links">
-        <td><a href="/{{ link.short_code }}" target="_blank">{{ link.short_code }}</a></td>
+        <td>
+          <a href="/{{ link.short_code }}" target="_blank">{{ link.short_code }}</a>
+          <span class="badge" *ngIf="link.is_custom">custom alias</span>
+        </td>
         <td class="truncate">{{ link.original_url }}</td>
         <td>{{ link.created_at | date:'short' }}</td>
       </tr>
     </tbody>
   </table>
   <p *ngIf="links.length === 0">No links yet.</p>
+
+  <div class="pagination">
+    <button (click)="previousPage()" [disabled]="offset === 0 || loadingLinks">Previous</button>
+    <span>Page {{ (offset / pageSize) + 1 }}</span>
+    <button (click)="nextPage()" [disabled]="links.length < pageSize || loadingLinks">Next</button>
+  </div>
 </div>
